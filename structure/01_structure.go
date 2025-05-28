@@ -1,29 +1,34 @@
 package main
 
-import (
-	"fmt"
-	"math"
-)
-
 /*
 	Стуктуры (практически как класс в typescript) - это тип данных, который позволяет объединить несколько значений
-	(полей) разных типов в один логический объект.
+	(полей) разных типов в один логический объект. Отличается от карты тем, что как раз может хранить разные типы
+	данных, а ключи - всегда строки.
 
 
 	1) определить
+	тип:
 	type Circle struct {
 		x, y, r float64
+	}
+
+	или структурные переменные:
+	var c struct {
+		x : 1.0,
+		y : 2.0,
+		z : 3.0
 	}
 
 
 
 	2) использовать
 
-	в переменной:
+	- В ПЕРЕМЕННОЙ:
+	с неприсвоенными значениями:
 	var c Circle
 	c := Circle{}
 	c := new(Circle)
-	ИЛИ С ПРИСВОЕННЫМИ ЗНАЧЕНИЯМИ:
+	или с присвоенными значениями:
 	c := Circle{x: 0, y: 0, r: 5}
 	c := Circle{0, 0, 5}
 
@@ -32,7 +37,7 @@ import (
 	если мы их не определили.
 
 
-	в функции, как аргумент:
+	- В ФУНКЦИИ, КАК АРГУМЕНТ:
 	func (c Circle)
 
 
@@ -54,9 +59,12 @@ import (
 	4) методы:
 	//создать (может быть доступна только для Circle)
 	func ([получатель]) [название функции] [тип возвращаемого значения] {}
+
+	c *Circle - параметр получателя
 	func (c *Circle) area() float64 {
 		return math.Pi * c.r * c.r //таким образом он сразу имеет доступ к свойствам
 	}
+
 
 	//использовать, go автоматически предоставляет доступ к указателю на Circle для этого метода
 	fmt.Println(c.area())
@@ -64,79 +72,48 @@ import (
 	здесь имплементировали метод С УКАЗАТЕЛЕМ - (c *Circle), если имплементировать без указателя - то метод не будет
 	менять исходный объект, это имеет смысл если метод структуру не меняет (без указателя + к производительности).
 
-
+	//go работает так, что при обращении к свойствам структуры через точку по указателям работае так же, как и напрямую!
 
 	5) встраиваемые типы (анонимные поля) (наследование):
 
-	допустим, у нас есть ЛИЧНОСТЬ:
-	type Person struct {
-		Name string
-	}
-	func (p *Person) Talk() {
-		fmt.Println("Hi, my name is", p.Name)
-	}
 
-	и мы хотим создать АНДРОИДА, у которого тоже есть ЛИЧНОСТЬ:
-	type Android struct {
-		Person Person (переменная Person типа Person)
-		Model string
-	}
 
-	- это будет работать, но мы хотим описать другое отношение. Сейчас - это у АНДРОИДА "есть"
-	ЛИЧНОСТЬ, а мы хотим чтобы было АНДРОИД "является" ЛИЧНОСТЬЮ. Такое отношение можно описать
-	через встраиваемые типы (анонимные поля):
-
-	type Android struct {
-		Person //использовали тип (Person) и не написали его имя
-		Model string
-	}
-
-	- теперь у АНРОИДА мы имеем доступ ко всем полям и методам ЛИЧНОСТИ:
-	a := new(Android)
-	ИЛИ
-	var a = Android{
-		Model: "model",
-		Person: Person {
-			Name: "name",
-		},
-	}
-
-	a.Talk() или a.Person.Talk()
+	//6) лучше всегда в функцию передавать указатель на структуру, а не саму структуру, так как они занимают много памяти
 
 
 */
 
-func main() {
-	rect := Rectangle{x1: 0, y1: 0, x2: 10, y2: 10}
-	circ := Circle{x: 0, y: 0, r: 5}
+// func main() {
+// 	rect := Rectangle{x1: 0, y1: 0, x2: 10, y2: 10}
+// 	circ := Circle{x: 0, y: 0, r: 5}
 
-	fmt.Println("Rectangle area:", rect.area())
-	fmt.Println("Circle area:", circ.area())
-}
+// 	fmt.Println("Rectangle area:", rect.area())
+// 	fmt.Println("Circle area:", circ.area())
+// }
 
-type Circle struct {
-	x float64
-	y float64
-	r float64
-}
+// type Circle struct {
+// 	x float64
+// 	y float64
+// 	r float64
+// }
 
-/*
-	можно заменить на:
-	type Circle struct {
-		x, y, r float64
-	}
-*/
+// /*
+// 	можно заменить на:
+// 	type Circle struct {
+// 		x, y, r float64
+// 	}
+// */
 
-type Rectangle struct {
-	x1, y1, x2, y2 float64
-}
+// type Rectangle struct {
+// 	x1, y1, x2, y2 float64
+// }
 
-func (c Circle) area() float64 {
-	return math.Pi * c.r * c.r
-}
+// func (c Circle) area() float64 {
+// 	return math.Pi * c.r * c.r
+// }
 
-func (r Rectangle) area() float64 {
-	l := r.x2 - r.x1
-	w := r.y2 - r.y1
-	return l * w
-}
+// func (r Rectangle) area() float64 {
+// 	l := r.x2 - r.x1
+// 	w := r.y2 - r.y1
+// 	return l * w
+// }
