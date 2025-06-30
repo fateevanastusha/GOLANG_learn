@@ -17,6 +17,8 @@ func main() {
 	fmt.Println("-----------------------------------------------------------------------")
 	simpleWriter() // простая запись
 	fmt.Println("-----------------------------------------------------------------------")
+	rowsWriter() // запись по строке
+	fmt.Println("-----------------------------------------------------------------------")
 	osFile()
 
 }
@@ -38,7 +40,7 @@ type NumsReader struct {
 	nums string
 }
 
-// ПЕРЕДАЕМ "ФЛЕШКУ", НА КОТОРУЮ ЗАПИСЫВАЕМ ДАННЫЕ С ДИСКА
+// ТУТ ПОЛУЧАЕМ "ФЛЕШКУ", НА КОТОРУЮ ЗАПИСЫВАЕМ ДАННЫЕ С ДИСКА (r.nums)
 // берет буфер, в который нужно класть прочитанные данные
 // возвращает количество прочитанных символов и ошибку, если она есть
 func (r NumsReader) Read(p []byte) (n int, err error) {
@@ -73,7 +75,7 @@ type RowsReader struct {
 	text string
 }
 
-func (r *RowsReader) Read(p []byte) (n int, err error) {
+func (r *RowsReader) Read(p []byte /* пишем данные сюда */) (n int, err error) {
 	var i int
 	for i = 0; i < len(r.text); i++ {
 		/*
@@ -114,8 +116,6 @@ type NumsWriter struct {
 	storedNums []byte
 }
 
-//------------------------------------------------------------------------------------------------------------------
-
 // ПЕРЕДАЕМ "ФЛЕШКУ", ЧТОБЫ ПЕРЕПИСАТЬ С НЕЕ ДАННЫЕ НА ДИСК
 // берет буфер, из котрого нужно брать данные для записи, записывает их в w
 // возвращает количество записанных символов и ошибку, если она есть
@@ -131,34 +131,45 @@ func (w NumsWriter) Write(p []byte) (n int, err error) {
 	return cnt, io.EOF
 }
 
-// func rowsWriter() {
-// 	rowsWriter := RowsWriter{}
+//------------------------------------------------------------------------------------------------------------------
 
-// 	var (
-// 		err   error
-// 		count int
-// 	)
+func rowsWriter() {
+	text := "first_row\nsecond_row\nthird_row"
+	var (
+		err   error
+		count int
+	)
+	rowsWriter := RowsWriter{storedRow: make([]byte, 100)}
 
-// 	rows := []byte("first_row\nsecond_row\nthird_row")
+	for err != io.EOF {
+		count, err = rowsWriter.Write(&text)
+		fmt.Println(string(rowsWriter.storedRow[0:count]), count)
+	}
 
-// 	for err != io.EOF {
-// 		count, err = rowsWriter.Write(rows)
-// 		fmt.Print(string(rowsWriter.text), count)
-// 	}
-// }
+}
 
-// type RowsWriter struct {
-// 	text string
-// }
+type RowsWriter struct {
+	storedRow []byte
+}
 
-// func (w RowsWriter) Write(p []byte) (n int, err error) {
-// 	var i int
-// 	for i = 0; i < len(p); i++ {
-// 		if p[i] == '\n' {
+func (w *RowsWriter) Write(text *string /* читаем данные отсюда */) (n int, err error) {
+	var i int
+	for i = 0; i < len(*text); i++ {
+		if (*text)[i] == '\n' {
+			*text = (*text)[i+1:]
+			w.storedRow = w.storedRow[0 : i+1]
+			break
+		}
+		w.storedRow[i] = (*text)[i]
 
-// 		}
-// 	}
-// }
+		if i == len(*text)-1 {
+			*text = ""
+			return i + 1, io.EOF
+		}
+	}
+
+	return i + 1, nil
+}
 
 //------------------------------------------------------------------------------------------------------------------
 

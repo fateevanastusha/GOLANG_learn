@@ -90,7 +90,7 @@ func input() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("TEXTS = ", text1, text2, " COUNT = ", count) // "" "" [кол-во символов]
+	fmt.Println("TEXTS = ", text1, text2, "COUNT = ", count) // "" "" [кол-во символов]
 
 	fmt.Println("please enter TWO values:")
 	count, err = fmt.Fscan(os.Stdin, &text1, &text2)
