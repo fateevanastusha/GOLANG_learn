@@ -4,45 +4,78 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sync"
 )
 
-func generateNumbers(max int) chan int {
-	// Создаем канал для отправки сообщений
-	out := make(chan int)
-
-	// Запускаем горутину для генерации чисел
-	go func() {
-		// ВАЖНО: всегда закрываем канал после завершения
-		defer close(out)
-
-		for i := 1; i <= max; i++ {
-			out <- i // Кладем значение в канал
-		}
-	}()
-
-	// Возвращаем канал
-	return out
-}
-
-func generateLines(filename string) chan string {
-	out := make(chan string)
-	go func() {
-		defer close(out)
-		file, err := os.Open(filename)
-		if err != nil {
-			return
-		}
-		defer file.Close()
-
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			out <- scanner.Text()
-		}
-	}()
-	return out
-}
-
 func main() {
+	generatorUser_1()
+	generatorUser_2()
+}
+
+func generatorUser_1() {
+	/*
+		 	generator
+			есть функция, создающая канал, заполняющая его и возвращающая этот канал только на чтение
+			- между созданием канала и между возвратом канала нет блокирующих действий
+	*/
+	fmt.Println("generator\n")
+	ch1 := generator_1()
+
+	for range 10 { //ЗАКРЫВАТЬ КАНАЛ НЕ ОБЯЗАТЕЛЬНО
+		fmt.Println("ch1 = ", <-ch1)
+	}
+
+	fmt.Println("--")
+
+	ch2 := generator_2()
+	for v := range ch2 { //ЗАКРЫВАТЬ КАНАЛ ОБЯЗАТЕЛЬНО
+		fmt.Println("ch2 = ", v)
+	}
+}
+
+func generator_1() <-chan int {
+	ch := make(chan int)
+	go func() {
+		for i := range 10 {
+			ch <- i + 1 //генерация данных
+		}
+		close(ch) //закрытие канала нужно только в том случае, если я читаю его через range
+	}()
+
+	return ch //автоматически преобразуется в канал только на чтение
+}
+
+// несколько писателей
+func generator_2() <-chan int {
+	ch := make(chan int)
+	wg := &sync.WaitGroup{}
+
+	wg.Add(2)
+	go func() {
+		for i := range 10 {
+			ch <- i + 1 //генерация данных
+		}
+		defer wg.Done()
+	}()
+
+	go func() {
+		for i := range 10 {
+			ch <- i + 10 //генерация данных
+		}
+		defer wg.Done()
+	}()
+
+	go func() {
+		wg.Wait()
+		close(ch)
+
+	}()
+
+	return ch //автоматически преобразуется в канал только на чтение
+}
+
+func generatorUser_2() {
+
 	/*
 		генератор - как фонтан, который непрерывно производит значения, которые мы можем использовать при необходимости.
 		В Go это функция, которая создает поток значений и отправляет их по каналу, позволяя другим частям нашей программы
@@ -100,4 +133,40 @@ func main() {
 	// 	return numbers
 	// }
 
+}
+
+func generateNumbers(max int) chan int {
+	// Создаем канал для отправки сообщений
+	out := make(chan int)
+
+	// Запускаем горутину для генерации чисел
+	go func() {
+		// ВАЖНО: всегда закрываем канал после завершения
+		defer close(out)
+
+		for i := 1; i <= max; i++ {
+			out <- i // Кладем значение в канал
+		}
+	}()
+
+	// Возвращаем канал
+	return out
+}
+
+func generateLines(filename string) chan string {
+	out := make(chan string)
+	go func() {
+		defer close(out)
+		file, err := os.Open(filename)
+		if err != nil {
+			return
+		}
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			out <- scanner.Text()
+		}
+	}()
+	return out
 }
